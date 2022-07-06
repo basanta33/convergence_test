@@ -2,44 +2,37 @@
 # Joint Fossilized Birth-Death Process prior on the topology and fossil occurrence times #
 ##########################################################################################
 
-# time splits
-timeline <- v(20, 40, 60, 80, 105)
-
-for(i in 1:(timeline.size() + 1))  {
-    i
-
-  # Define a exponential priors on the birth rate and turnover #
-  speciation_rate[i] ~  dnExponential(10)
-  turnover[i] ~ dnExponential(10)
+# Define a exponential priors on the birth rate and turnover #
+  speciation_rate ~  dnExponential(10)
+  turnover ~ dnExponential(10)
   #extinction_rate ~  dnExponential(10)
 
   # Specify a scale move on the speciation_rate parameter #
   # This move will be applied with 3 different tuning values (lambda) to help improve mixing #
-  moves[mvi++] = mvScale(speciation_rate[i], lambda=0.01, weight=1)
-  moves[mvi++] = mvScale(speciation_rate[i], lambda=0.1,  weight=1)
-  moves[mvi++] = mvScale(speciation_rate[i], lambda=1.0,  weight=1)
+  moves[mvi++] = mvScale(speciation_rate, lambda=0.01, weight=1)
+  moves[mvi++] = mvScale(speciation_rate, lambda=0.1,  weight=1)
+  moves[mvi++] = mvScale(speciation_rate, lambda=1.0,  weight=1)
 
   # Specify a sliding-window move on the extinction_rate parameter #
   # This move will be applied with 3 different window widths (delta) to   help improve mixing #
-  moves[mvi++] = mvScale(turnover[i], lambda=0.01, weight=1)
-  moves[mvi++] = mvScale(turnover[i], lambda=0.1,  weight=1)
-  moves[mvi++] = mvScale(turnover[i], lambda=1, weight=1)
+  moves[mvi++] = mvScale(turnover, lambda=0.01, weight=1)
+  moves[mvi++] = mvScale(turnover, lambda=0.1,  weight=1)
+  moves[mvi++] = mvScale(turnover, lambda=1, weight=1)
 
-    psi[i] ~ dnExponential(10)
+    psi ~ dnExponential(10)
 
 
-    moves[mvi++] = mvScale(psi[i], lambda = 0.01, weight=1)
-    moves[mvi++] = mvScale(psi[i], lambda = 0.1, weight=1)
-    moves[mvi++] = mvScale(psi[i], lambda = 1, weight=1)
+    moves[mvi++] = mvScale(psi, lambda = 0.01, weight=1)
+    moves[mvi++] = mvScale(psi, lambda = 0.1, weight=1)
+    moves[mvi++] = mvScale(psi, lambda = 1, weight=1)
 
 
 
   # Create deterministic nodes for extinction and diversification rates so that they can be monitored #
-  extinction_rate[i] := turnover[i] * speciation_rate[i]
-  diversification[i] := speciation_rate[i] - extinction_rate[i]
+  extinction_rate := turnover * speciation_rate
+  diversification := speciation_rate - extinction_rate
   #turnover := extinction_rate/speciation_rate
 
-}
 
 # Fix the probability of sampling parameter (rho) to 1, #
 # because all extant bears are represented in this analysis #
@@ -91,26 +84,25 @@ constraints = v( agroecomyrmecinae, aneuretinae, amblyoponinae,  dolichoderinae,
 fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints)
 #fbd_tree.setValue(starting_tree)
 
-
-#age_agro :=tmrca(fbd_tree, agroecomyrmecinae)
-#age_ambly := tmrca(fbd_tree, amblyoponinae)
-#age_aneu := tmrca(fbd_tree, aneuretinae)
-#age_doli := tmrca(fbd_tree, dolichoderinae)
-#age_dory := tmrca(fbd_tree, dorylinae)
-#age_ecta := tmrca(fbd_tree, ectatomminae)
+age_agro :=tmrca(fbd_tree, agroecomyrmecinae)
+age_ambly := tmrca(fbd_tree, amblyoponinae)
+age_aneu := tmrca(fbd_tree, aneuretinae)
+age_doli := tmrca(fbd_tree, dolichoderinae)
+age_dory := tmrca(fbd_tree, dorylinae)
+age_ecta := tmrca(fbd_tree, ectatomminae)
 #age_formiciinae := tmrca(fbd_tree, formiciinae)
-#age_formicinae := tmrca(fbd_tree, formicinae)
+age_formicinae := tmrca(fbd_tree, formicinae)
 #age_heter := tmrca(fbd_tree, heteroponerinae)
-#age_lept := tmrca(fbd_tree, leptanillinae)
+age_lept := tmrca(fbd_tree, leptanillinae)
 #age_mart := tmrca(fbd_tree, martialinae)
-#age_myrmicinae := tmrca(fbd_tree, myrmicinae)
+age_myrmicinae := tmrca(fbd_tree, myrmicinae)
 #age_myrmeciinae := tmrca(fbd_tree, myrmeciinae)
 #age_para := tmrca(fbd_tree, paraponerinae)
-#age_poner := tmrca(fbd_tree, ponerinae)
+age_poner := tmrca(fbd_tree, ponerinae)
 #age_proc := tmrca(fbd_tree, proceratiinae)
-#age_pseu := tmrca(fbd_tree, pseudomyrmecinae)
-#age_sphe := tmrca(fbd_tree, sphecomyrma)
-#age_haido := tmrca(fbd_tree, haidomyrmicinae)
+age_pseu := tmrca(fbd_tree, pseudomyrmecinae)
+age_sphe := tmrca(fbd_tree, sphecomyrma)
+age_haido := tmrca(fbd_tree, haidomyrmicinae)
 #age_outgroup := tmrca(fbd_tree, outgroup)
 
 # Specify mclade(taxon))
