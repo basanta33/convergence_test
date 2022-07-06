@@ -14,7 +14,7 @@
 # mcmc generations
 gens = 200000
 fromTrace = TRUE
-run_PPS = TRUE
+run_PPS = FALSE
 
 # Create the full list of taxa (including all fossils and extant species #
 taxa <- readTaxonData("Data/Fossils/TotalTaxa.tsv")
@@ -59,7 +59,7 @@ source("scripts/model_GTRG_TEFBD.Rev") # Molecular substitution model (GTR+G)
 
 # source("scripts/model_Morph_TEFBD.Rev") # Morphological character change model (mk)
 # source("scripts/model_MorphBlock_TEFBD.Rev") # Morphological character change model (mk with different alpha_morpho per block)
-source("scripts/model_SHDMorph_TEFBD.Rev") # Morphological character change model (SHDM model)
+source("scripts/model_MorphBlock_TEFBD.Rev") # Morphological character change model (SHDM model)
 
 
 ########
