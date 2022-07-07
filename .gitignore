@@ -1,0 +1,5 @@
+*.txt
+*.log
+*.var
+*.trees
+*.stoch.log

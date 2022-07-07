@@ -1,0 +1,142 @@
+##########################################################################################
+# Joint Fossilized Birth-Death Process prior on the topology and fossil occurrence times #
+##########################################################################################
+
+# time splits
+timeline <- v(20, 40, 60, 80, 105)
+
+for(i in 1:(timeline.size() + 1))  {
+    i
+
+  # Define a exponential priors on the birth rate and turnover #
+  speciation_rate[i] ~  dnExponential(10)
+  turnover[i] ~ dnExponential(10)
+  #extinction_rate ~  dnExponential(10)
+
+  # Specify a scale move on the speciation_rate parameter #
+  # This move will be applied with 3 different tuning values (lambda) to help improve mixing #
+  moves[mvi++] = mvScale(speciation_rate[i], lambda=0.01, weight=1)
+  moves[mvi++] = mvScale(speciation_rate[i], lambda=0.1,  weight=1)
+  moves[mvi++] = mvScale(speciation_rate[i], lambda=1.0,  weight=1)
+
+  # Specify a sliding-window move on the extinction_rate parameter #
+  # This move will be applied with 3 different window widths (delta) to   help improve mixing #
+  moves[mvi++] = mvScale(turnover[i], lambda=0.01, weight=1)
+  moves[mvi++] = mvScale(turnover[i], lambda=0.1,  weight=1)
+  moves[mvi++] = mvScale(turnover[i], lambda=1, weight=1)
+
+    psi[i] ~ dnExponential(10)
+
+
+    moves[mvi++] = mvScale(psi[i], lambda = 0.01, weight=1)
+    moves[mvi++] = mvScale(psi[i], lambda = 0.1, weight=1)
+    moves[mvi++] = mvScale(psi[i], lambda = 1, weight=1)
+
+
+
+  # Create deterministic nodes for extinction and diversification rates so that they can be monitored #
+  extinction_rate[i] := turnover[i] * speciation_rate[i]
+  diversification[i] := speciation_rate[i] - extinction_rate[i]
+  #turnover := extinction_rate/speciation_rate
+
+}
+
+# Fix the probability of sampling parameter (rho) to 1, #
+# because all extant bears are represented in this analysis #
+rho <- .042
+
+# The FBD is conditioned on a starting time for the process, which is the origin time #
+# Specify a uniform prior on the origin #
+origin_time ~ dnUnif(110, 150)
+
+# Specify a sliding-window move on the origin_time parameter #
+# This move will be applied with 3 different window widths (delta) to help improve mixing #
+moves[mvi++] = mvSlide(origin_time, delta=0.01, weight=5.0)
+moves[mvi++] = mvSlide(origin_time, delta=0.1,  weight=5.0)
+moves[mvi++] = mvSlide(origin_time, delta=1, weight=5.0)
+
+
+### Define the tree-prior distribution as the fossilized birth-death process ###
+# fbd_dist = dnFBDP(origin=origin_time, lambda=speciation_rate, mu=extinction_rate, psi=psi, rho=rho, taxa=taxa)
+
+fbd_dist = dnFBDP(originAge=origin_time,lambda=speciation_rate, timeline=timeline, mu=extinction_rate, psi=psi, rho=rho, taxa=taxa)
+
+#crown = clade("Martialis_heureka", "Leptanilla_swani", "Anomalomyrma_sp", "Apomyrma_stygia", "Opamyrma_hungvuong", "Amblyopone_pallipes", "Proceratium_stictum", "Paraponera_clavata", "Platythyrea_punctata","Pogonomyrmex_californicus", "Tatuidris_tatusia", "Leptogenys_diminuta", "Hypoponera_opacior", "Tetraponera_punctulata", "Leptanilloides_nomada","Nothomyrmecia_macrops", "Aneuretus_simoni","Lasius_californicus", "Formica_fusca", "Myrmica_americana" )
+agroecomyrmecinae = clade("Xymmer_muticus", "Tatuidris_tatusia")
+amblyoponinae = clade("Prionopelta_MAD01", "Onychomyrmex_hedleyi", "Mystrium_mysticum", "Adetomyrma_MAD02", "Amblyopone_armigera", "Concoctio_concenta", "Myopopone_castanea", "Mystrium_voeltzkowi", "Onychomyrmex_doddi", "Prionopelta_aethiopica", "Myopopone_sinensis")
+aneuretinae =  clade("Aenictus_eugenii", "Mianeuretus_eocenicus")
+dolichoderinae = clade("Technomyrmex_voeltzkowi", "Dolichoderus_laminatus", "Tapinoma_opacum", "Ravavy_miafina", "Philidris_cordata", "Ochetellus_cf_glaber_clarithorax", "Nebothriomyrmex_majeri", "Liometopum_occidentale", "Leptomyrmex_AU01", "Leptomyrmex_erythrocephalus", "Linepithema_humile", "Iridomyrmex_pallidus", "Froggattella_latispina", "Dolichoderus_debilis", "Azteca_schimperi", "Anonychomyrma_itinerans", "Anonychomyrma_nitidiceps", "Tapinoma_erraticum", "Technomyrmex_albipes", "Iridomyrmex_purpureus", "Dolichoderus_antiquus")
+dorylinae = clade("Vicinopone_conciliatrix", "Stenamma_snellingi", "Neivamyrmex_nigrescens", "Leptanilloides_gracilis", "Dorylus_laevigatus", "Dorymyrmex_elegans", "Cylindromyrmex_brevitarsus", "Cheliomyrmex_morosus", "Aptinoma_antongil", "Acanthostichus_punctiscapus", "Leptanilloides_femoralis", "Cerapachys_sexspinus", "Aenictus_turneri", "Leptanilliodes_biconstricta", "Simopone_schoutedeni", "Dorylus_helvolus", "Acanthostichus_serratulus", "Parasyscia_conservata")
+ectatomminae = clade("Ectatomma_tuberculatum", "Gnamptogenys_annulata","Rhytidoponera_confusa", "Typhlomyrmex_pusillus", "Typhlomyrmex_rogenhoferi", "Acanthoponera_minor", "Pseudectatomma_eocenica")
+formiciinae = clade("Titanomyrma_simillima")
+formicinae = clade ("Zatania_gloriosa", "Wasmannia_auropunctata", "Pseudolasius_australis", "Polyrhachis_Hagio01", "Ochetomyrmex_neopolitus", "Nylanderia_parvula", "Notoncus_capitatus", "Camponotus_hyatti", "Brachymyrmex_depilis", "Acropyga_acutiventris", "Gesomyrmex_luzonensis", "Camponotus_conithorax", "Formica_wheeleri",  "Kyromyrma_sp", "Lasius_californicus", "Myrmecorhynchus_sp",  "Nylanderia_phantasma", "Oecophylla_smaragdina", "Plagiolepis_sp",  "Prenolepis_nitens",  "Pseudolasius_sp_PHL01", "Formica_immersa")
+heteroponerinae = clade("Heteroponera_brouni", "Heteroponera_relicta")
+leptanillinae = clade("Protanilla_sp", "Anomalomyrma_sp", "Opamyrma_hungvuong", "Leptanilla_GRE01")
+martialinae = clade("Martialis_heureka")
+myrmeciinae =clade("Prionomyrmex_wappleri")
+myrmicinae = clade("Tropidomyrmex_elianae", "Tranopelta_gilva", "Trachymyrmex_jamaicensis", "Tetramorium_spinosum", "Terataner_bottegoi", "Temnothorax_kutteri", "Talaridris_mandibularis", "Strumigenys_gundlachi", "Solenopsis_molesta", "Rhopalomastix_janeti", "Pristomyrmex_orbiceps", "Pogonomyrmex_imberbiculus", "Pheidole_antipodum", "Myrmica_kotokui", "Myrmecina_graminicola", "Monomorium_ergatogyna", "Malagidris_jugum", "Kalathomyrmex_emeryi", "Goniomma_blanci", "Formicoxenus_diversipilosus", "Dacatria_templaris","Crematogaster_acuta", "Cataulacus_hispidulus", "Cephalotes_texanus", "Cerapachys_splendens", "Carebara_affinis", "Cardiocondyla_mauritanica", "Apterostigma_auriculatum", "Aphaenogaster_albisetosa", "Anillomyrma_AFRC_TZ_01", "Acanthognathus_ocellatus", "Pogonomyrmex_californicus", "Myrmica_americana", "Polyrhachis_Cyrto01", "Agastomyrma_laticeps")
+paraponerinae = clade("Paraponera_clavata")
+ponerinae = clade("Plectroctena_minor", "Platythyrea_strenua","Pachycondyla_apicalis", "Pachycondyla_crassinoda", "Odontomachus_clarus", "Neoponera_commutata", "Myopias_tenuis", "Mesoponera_rubra", "Mayaponera_constricta", "Leptogenys_attenuata", "Hypoponera_opacior", "Euponera_sikorae", "Dinoponera_australis", "Diacamma_rugosum", "Brachyponera_chinensis", "Anochetus_madagascarensis", "Platythyrea_lamellosa", "Anochetus_emarginatus", "Asphinctopone_silvestrii", "Belonopelta_deletrix", "Austroponera_castanea", "Leptogenys_diminuta", "Odontomachus_bauri",  "Ponera_alpha", "Ponerites_atavinus")
+proceratiinae = clade("Proceratium_stictum", "Probolomyrmex_guineensis",  "Discothyrea_oculata", "Proceratium_gibberum")
+pseudomyrmecinae = clade("Tetraponera_rufonigra", "Pseudomyrmex_apache", "Pseudomyrmex_saxulum")
+sphecomyrma = clade("Gerontoformica_gracilis", "Gerontoformica_magnus", "Gerontoformica_pilosus", "Gerontoformica_spiralis", "Haidomyrmex_cerberus")
+haidomyrmicinae = clade("Haidomyrmex_scimitarus", "Haidomyrmodes_mammuthus", "Haidoterminus_cippus")
+
+#outgroup = clade("Metapolybia_cingulata", "Scolia_nobilitata", "Scolia_verticalis", "Apis_mellifera", "Aporus_niger", "Apterogyna_ZA01", "Chalybion_californicum", "Chyphotes_mellipes", "Chyphotes_sp", "Dasymutilla_aureola", "Sapyga_pumila", "Vespula_sp")
+
+
+# The will be a random variable of a constrained topology distribution that is governed by the FBD #
+# this distribution will generate FBD trees that match the monophyly constraints defined above #
+constraints = v( agroecomyrmecinae, aneuretinae, amblyoponinae,  dolichoderinae, ectatomminae, formicinae, leptanillinae,myrmicinae,  ponerinae, dorylinae, pseudomyrmecinae, sphecomyrma, haidomyrmicinae)
+#  myrmiicinae, agroecomyrmecinae, martialinae,formiciinae,
+fbd_tree ~ dnConstrainedTopology(fbd_dist, constraints)
+#fbd_tree.setValue(starting_tree)
+
+
+age_agro :=tmrca(fbd_tree, agroecomyrmecinae)
+age_ambly := tmrca(fbd_tree, amblyoponinae)
+age_aneu := tmrca(fbd_tree, aneuretinae)
+age_doli := tmrca(fbd_tree, dolichoderinae)
+age_dory := tmrca(fbd_tree, dorylinae)
+age_ecta := tmrca(fbd_tree, ectatomminae)
+age_formiciinae := tmrca(fbd_tree, formiciinae)
+age_formicinae := tmrca(fbd_tree, formicinae)
+age_heter := tmrca(fbd_tree, heteroponerinae)
+age_lept := tmrca(fbd_tree, leptanillinae)
+age_mart := tmrca(fbd_tree, martialinae)
+age_myrmicinae := tmrca(fbd_tree, myrmicinae)
+age_myrmeciinae := tmrca(fbd_tree, myrmeciinae)
+age_para := tmrca(fbd_tree, paraponerinae)
+age_poner := tmrca(fbd_tree, ponerinae)
+age_proc := tmrca(fbd_tree, proceratiinae)
+age_pseu := tmrca(fbd_tree, pseudomyrmecinae)
+age_sphe := tmrca(fbd_tree, sphecomyrma)
+age_haido := tmrca(fbd_tree, haidomyrmicinae)
+#age_outgroup := tmrca(fbd_tree, outgroup)
+
+# Specify mclade(taxon))
+fossils = fbd_tree.getFossils()
+for(i in 1:fossils.size())
+{
+    t[i] := tmrca(fbd_tree, clade(fossils[i]))
+
+    a_i = fossils[i].getMinAge()
+    b_i = fossils[i].getMaxAge()
+
+    F[i] ~ dnUniform(t[i] - b_i, t[i] - a_i)
+    F[i].clamp( 0 )
+}
+# Add a move to sample the fossil times #
+moves[mvi++] = mvFossilTimeSlideUniform(fbd_tree, origin_time, weight=5.0)
+moves[mvi++] = mvCollapseExpandFossilBranch(fbd_tree, origin_time, weight=6.0)
+
+# Add tree moves
+moves[mvi++] = mvFNPR(fbd_tree, weight=15)
+moves[mvi++] = mvNodeTimeSlideUniform(fbd_tree, weight=40)
+moves[mvi++] = mvRootTimeSlideUniform(fbd_tree, origin_time, weight=5)
+
+### Create deterministic nodes to monitor various tree statistics ###
+# Monitor the number of sampled ancestors in the FBD-tree #
+num_samp_anc := fbd_tree.numSampledAncestors();
+
+#age_extant := tmrca(fbd_tree, small)
