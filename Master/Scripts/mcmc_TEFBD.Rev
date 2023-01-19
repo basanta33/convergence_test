@@ -12,7 +12,7 @@
 # Reading in the Data #
 #######################
 # mcmc generations
-gens = 200000
+gens = 2000000
 fromTrace = FALSE
 run_PPS = FALSE
 
@@ -87,14 +87,14 @@ monitors[mni++] = mnStochasticVariable(filename="output/ants_TH.stoch.log", prin
 mymcmc = mcmc(mymodel, monitors, moves)
 
 if (run_PPS == FALSE) {
-  mymodel.graph("TH.dot")
+  mymodel.graph("ants_TH.dot")
 
   # Run Burnin and tuning
   mymcmc.burnin(generations=2000, tuningInterval=200)
   # Check acceptance rates
   mymcmc.operatorSummary()
   if (fromTrace == TRUE) {
-    trace = readStochasticVariableTrace(file = "output/ants_TH_1.var")
+    trace = readStochasticVariableTrace(file = "output/ants_TH.var")
     mymcmc.initializeFromTrace(trace)
   }
   mymcmc.operatorSummary()

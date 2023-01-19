@@ -12,7 +12,7 @@
 # Reading in the Data #
 #######################
 # mcmc generations
-gens = 200
+gens = 2000000
 fromTrace = FALSE
 run_PPS = FALSE
 
@@ -70,31 +70,31 @@ source("scripts/model_MorphBlock_TEFBD.Rev") # Morphological character change mo
 mymodel = model(fbd_tree)
 # Create a vector of monitors #
 # 1. for the full model #
-monitors[mni++] = mnModel(filename="output/ants_time_homo.log", printgen=10)
+monitors[mni++] = mnModel(filename="output/ants_sky.log", printgen=10)
 # 2. the tree #
-monitors[mni++] = mnFile(filename="output/ants_time_homo.trees", printgen=10, fbd_tree)
+monitors[mni++] = mnFile(filename="output/ants_sky.trees", printgen=10, fbd_tree)
 # 3. and a few select parameters to be printed to the screen #
 monitors[mni++] = mnScreen(printgen=10,  num_samp_anc, origin_time)
 #monitors[mni++] = mnScreen(printgen=10)
 
 # 4. the .var file for the stochastic variables (should include the tree)
-monitors[mni++] = mnStochasticVariable(filename="output/ants_time_homo.var", printgen=10)
+monitors[mni++] = mnStochasticVariable(filename="output/ants_sky.var", printgen=10)
 
 # 5. the stoch.log file (which may or may not be different from the .var file)
-monitors[mni++] = mnStochasticVariable(filename="output/ants_time_homo.stoch.log", printgen=10)
+monitors[mni++] = mnStochasticVariable(filename="output/ants_sky.stoch.log", printgen=10)
 
 # Initialize the MCMC object #
 mymcmc = mcmc(mymodel, monitors, moves)
 
 if (run_PPS == FALSE) {
-  mymodel.graph("Random1_time_homo.dot")
+  mymodel.graph("ants_sky.dot")
 
   # Run Burnin and tuning
   mymcmc.burnin(generations=20, tuningInterval=2)
   # Check acceptance rates
   mymcmc.operatorSummary()
   if (fromTrace == TRUE) {
-    trace = readStochasticVariableTrace(file = "output/ants_time_homo.var")
+    trace = readStochasticVariableTrace(file = "output/ants_sky.var")
     mymcmc.initializeFromTrace(trace)
   }
   mymcmc.operatorSummary()
